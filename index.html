@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIDEO DOWNLOAD</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Creepster', cursive, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        @import url('https://fonts.googleapis.com/css2?family=Creepster&display=swap');
+        
+        body {
+            background: #0a0a0a;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: #ff6d00;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: rgba(26, 26, 26, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(255, 109, 0, 0.3);
+            margin-top: 20px;
+            border: 2px solid #ff6d00;
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #ff6d00;
+            text-shadow: 0 0 10px rgba(255, 109, 0, 0.7);
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #ff6d00;
+            border-radius: 50px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #ffa500;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        .download-btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 50px;
+            background: linear-gradient(135deg, #ff6d00, #8b0000);
+            color: #fff;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .download-btn:hover {
+            background: linear-gradient(135deg, #ff8c00, #a00000);
+        }
+
+        .status {
+            text-align: center;
+            margin-top: 20px;
+            min-height: 50px;
+        }
+
+        .loading {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 109, 0, 0.3);
+            border-radius: 50%;
+            border-top-color: #ff6d00;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .result {
+            display: none;
+            text-align: center;
+        }
+
+        .video-preview {
+            width: 100%;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 20px 0;
+            border: 2px solid #ff6d00;
+        }
+
+        .video-preview video {
+            width: 100%;
+            display: block;
+        }
+
+        .download-options {
+            margin-top: 20px;
+        }
+
+        .option-btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #ff6d00, #8b0000);
+            color: white;
+            cursor: pointer;
+            text-decoration: none;
+            display: block;
+            text-align: center;
+        }
+
+        .error-message {
+            color: #ff4444;
+            text-align: center;
+            margin: 10px 0;
+            display: none;
+        }
+
+        .social-bar {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .social-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 109, 0, 0.2);
+            color: #ffa500;
+            font-size: 1.2rem;
+            border: 1px solid #ff6d00;
+        }
+
+        .ads-container {
+            width: 100%;
+            max-width: 500px;
+            margin-top: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+            background: rgba(26, 26, 26, 0.9);
+            border: 2px solid #ff6d00;
+        }
+
+        .ad-label {
+            text-align: center;
+            padding: 5px;
+            font-size: 0.8rem;
+            background: rgba(255, 109, 0, 0.3);
+            color: #ffa500;
+        }
+
+        .ad-content {
+            padding: 15px;
+            text-align: center;
+        }
+
+        .ad-link {
+            color: #ffa500;
+            text-decoration: none;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="logo">
+        <h1>🎃 Spooky Downloader 👻</h1>
+        <p>Real TikTok Video Downloader</p>
+    </div>
+    
+    <div class="container">
+        <div class="input-group">
+            <input type="text" id="videoUrl" placeholder="Paste TikTok video link here..." value="https://www.tiktok.com/@tiktok/video/7151056358252391722">
+        </div>
+        
+        <div class="error-message" id="errorMessage">
+            Please enter a valid TikTok URL!
+        </div>
+        
+        <button class="download-btn" id="downloadBtn">
+            <i class="fas fa-download"></i> Download Video
+        </button>
+        
+        <div class="status">
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Downloading your video...</p>
+            </div>
+            
+            <div class="result" id="result">
+                <h3>Download Ready! 👻</h3>
+                <div class="video-preview">
+                    <video controls id="videoPlayer">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+                <div class="download-options">
+                    <a class="option-btn" id="downloadLink" download="tiktok_video.mp4">
+                        <i class="fas fa-download"></i> Save Video (No Watermark)
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="social-bar">
+            <div class="social-icon">
+                <i class="fab fa-tiktok"></i>
+            </div>
+            <div class="social-icon">
+                <i class="fab fa-facebook"></i>
+            </div>
+            <div class="social-icon">
+                <i class="fab fa-instagram"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="ads-container">
+        <div class="ad-label">Advertisement</div>
+        <div class="ad-content">
+            <a href="https://www.effectivegatecpm.com/a78cspndgv?key=e1ec2a3260030c6a9a032089d7c96020" class="ad-link" target="_blank">
+                Unlock Premium Features!
+            </a>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const downloadBtn = document.getElementById('downloadBtn');
+            const videoUrl = document.getElementById('videoUrl');
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('result');
+            const errorMessage = document.getElementById('errorMessage');
+            const videoPlayer = document.getElementById('videoPlayer');
+            const downloadLink = document.getElementById('downloadLink');
+
+            // আপনার আগের working API
+            const WORKING_APIS = [
+                {
+                    name: "TikWM",
+                    url: "https://www.tikwm.com/api/",
+                    method: "POST"
+                },
+                {
+                    name: "TikDown", 
+                    url: "https://tikdown.org/api/ajaxSearch",
+                    method: "POST"
+                },
+                {
+                    name: "TikMate",
+                    url: "https://api.tikmate.app/api/lookup",
+                    method: "GET"
+                }
+            ];
+
+            function isValidTikTokUrl(url) {
+                return /https?:\/\/(www\.)?(tiktok\.com|vt\.tiktok\.com)\/.+/.test(url);
+            }
+
+            async function tryDownload(api, url) {
+                try {
+                    console.log(`Trying ${api.name}...`);
+                    
+                    if (api.method === "POST") {
+                        const formData = new FormData();
+                        formData.append('url', url);
+                        
+                        const response = await fetch(api.url, {
+                            method: 'POST',
+                            body: formData
+                        });
+                        return await response.json();
+                    } else {
+                        const response = await fetch(`${api.url}?url=${encodeURIComponent(url)}`);
+                        return await response.json();
+                    }
+                } catch (error) {
+                    console.error(`${api.name} failed:`, error);
+                    return null;
+                }
+            }
+
+            downloadBtn.addEventListener('click', async function() {
+                const url = videoUrl.value.trim();
+                
+                if (!url || !isValidTikTokUrl(url)) {
+                    errorMessage.style.display = 'block';
+                    return;
+                }
+                
+                errorMessage.style.display = 'none';
+                loading.style.display = 'flex';
+                result.style.display = 'none';
+                downloadBtn.disabled = true;
+
+                try {
+                    let videoData = null;
+                    
+                    // সব API try করবে
+                    for (const api of WORKING_APIS) {
+                        videoData = await tryDownload(api, url);
+                        
+                        if (videoData) {
+                            // TikWM API response
+                            if (videoData.data && videoData.data.play) {
+                                videoData.downloadUrl = videoData.data.play;
+                                break;
+                            }
+                            // TikDown API response  
+                            else if (videoData.links && videoData.links.download) {
+                                videoData.downloadUrl = videoData.links.download;
+                                break;
+                            }
+                            // TikMate API response
+                            else if (videoData.url) {
+                                videoData.downloadUrl = videoData.url;
+                                break;
+                            }
+                        }
+                    }
+
+                    loading.style.display = 'none';
+                    
+                    if (videoData && videoData.downloadUrl) {
+                        // Video player সেট করো
+                        videoPlayer.src = videoData.downloadUrl;
+                        
+                        // Download link সেট করো
+                        downloadLink.href = videoData.downloadUrl;
+                        downloadLink.setAttribute('download', 'tiktok_video.mp4');
+                        
+                        result.style.display = 'block';
+                        
+                        // Ads trigger করো
+                        triggerAds();
+                        
+                    } else {
+                        throw new Error('All APIs failed or no video URL found');
+                    }
+                    
+                } catch (error) {
+                    console.error('Final error:', error);
+                    loading.style.display = 'none';
+                    errorMessage.textContent = 'Download failed! Try a different TikTok URL.';
+                    errorMessage.style.display = 'block';
+                }
+                
+                downloadBtn.disabled = false;
+            });
+
+            function triggerAds() {
+                // Smart Link Ad
+                const smartLink = document.createElement('a');
+                smartLink.href = 'https://www.effectivegatecpm.com/a78cspndgv?key=e1ec2a3260030c6a9a032089d7c96020';
+                smartLink.target = '_blank';
+                document.body.appendChild(smartLink);
+                smartLink.click();
+                document.body.removeChild(smartLink);
+                
+                console.log('Ads triggered');
+            }
+
+            videoUrl.addEventListener('input', function() {
+                errorMessage.style.display = 'none';
+            });
+
+            // Test URL দিয়ে দিলাম
+            videoUrl.value = "ENTER_YOUR_URL";
+        });
+    </script>
+
+    <!-- Ads Scripts -->
+    <script type='text/javascript' src='//pl28012636.effectivegatecpm.com/9e/40/6b/9e406bc78dc63d3ada5aaf24502f97b3.js'></script>
+    <script type='text/javascript' src='//pl27501688.effectivegatecpm.com/c6/09/b4/c609b4f3235f38fbc418d302dca9e579.js'></script>
+</body>
+  </html>
