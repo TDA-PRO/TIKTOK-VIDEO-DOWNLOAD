@@ -1,0 +1,1946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spooky Video Downloader</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Creepster', cursive, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        @import url('https://fonts.googleapis.com/css2?family=Creepster&display=swap');
+        
+        body {
+            background: #0a0a0a;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: #ff6d00;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .floating-bats {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .bat {
+            position: absolute;
+            font-size: 24px;
+            color: #333;
+            opacity: 0.7;
+            animation: fly 15s linear infinite;
+        }
+        
+        @keyframes fly {
+            0% {
+                transform: translateX(-100px) translateY(0) rotate(0deg);
+            }
+            50% {
+                transform: translateX(calc(100vw + 100px)) translateY(calc(50vh - 100px)) rotate(180deg);
+            }
+            100% {
+                transform: translateX(calc(100vw + 100px)) translateY(calc(100vh - 200px)) rotate(360deg);
+            }
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: rgba(26, 26, 26, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(255, 109, 0, 0.3);
+            margin-top: 20px;
+            border: 2px solid #ff6d00;
+        }
+
+        .premium-badge {
+            position: absolute;
+            top: -10px;
+            right: 20px;
+            background: linear-gradient(135deg, #ffd700, #ffcc00);
+            color: #000;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            display: none;
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .logo h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #ff6d00;
+            text-shadow: 0 0 10px rgba(255, 109, 0, 0.7);
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            position: relative;
+            display: flex;
+            gap: 10px;
+        }
+
+        .input-group input {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #ff6d00;
+            border-radius: 50px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #ffa500;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        .paste-btn {
+            padding: 15px 20px;
+            border: 2px solid #ff6d00;
+            border-radius: 50px;
+            background: rgba(255, 109, 0, 0.2);
+            color: #ffa500;
+            cursor: pointer;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            transition: all 0.3s ease;
+        }
+
+        .paste-btn:hover {
+            background: rgba(255, 109, 0, 0.4);
+        }
+
+        .download-btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 50px;
+            background: linear-gradient(135deg, #ff6d00, #8b0000);
+            color: #fff;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .download-btn:hover {
+            background: linear-gradient(135deg, #ff8c00, #a00000);
+            transform: translateY(-2px);
+        }
+
+        .help-btn {
+            width: 100%;
+            margin-top: 15px;
+            padding: 12px;
+            border: 2px solid #ff6d00;
+            border-radius: 50px;
+            background: transparent;
+            color: #ffa500;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .help-btn:hover {
+            background: rgba(255, 109, 0, 0.1);
+        }
+
+        .unlock-premium-btn {
+            width: 100%;
+            margin-top: 15px;
+            padding: 12px;
+            border: 2px solid #ffd700;
+            border-radius: 50px;
+            background: linear-gradient(135deg, #ffd700, #ffcc00);
+            color: #000;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .unlock-premium-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
+        }
+
+        .status {
+            text-align: center;
+            margin-top: 20px;
+            min-height: 50px;
+        }
+
+        .loading {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 109, 0, 0.3);
+            border-radius: 50%;
+            border-top-color: #ff6d00;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .result {
+            display: none;
+            text-align: center;
+        }
+
+        .video-preview {
+            width: 100%;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 20px 0;
+            border: 2px solid #ff6d00;
+            position: relative;
+            background: #000;
+            aspect-ratio: 9/16;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .video-thumbnail {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 13px;
+            pointer-events: none;
+        }
+
+        .play-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3rem;
+            color: rgba(255, 255, 255, 0.8);
+            text-shadow: 0 0 20px rgba(255, 109, 0, 0.7);
+            pointer-events: none;
+        }
+
+        .download-options {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .option-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255, 109, 0, 0.2);
+            color: #ffa500;
+            cursor: pointer;
+            text-decoration: none;
+            text-align: center;
+            border: 1px solid #ff6d00;
+            transition: all 0.3s ease;
+        }
+
+        .option-btn:hover {
+            background: rgba(255, 109, 0, 0.4);
+        }
+
+        .option-btn.highlight {
+            background: linear-gradient(135deg, #ff6d00, #8b0000);
+            color: white;
+        }
+
+        .option-btn.premium {
+            background: linear-gradient(135deg, #ffd700, #ffcc00);
+            color: #000;
+            border-color: #ffd700;
+        }
+
+        .error-message {
+            color: #ff4444;
+            text-align: center;
+            margin: 10px 0;
+            display: none;
+        }
+
+        .success-message {
+            color: #4dff4d;
+            text-align: center;
+            margin: 10px 0;
+            display: none;
+        }
+
+        /* Premium Modal */
+        .premium-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 3000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .premium-content {
+            background: rgba(26, 26, 26, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+            border: 3px solid #ffd700;
+            position: relative;
+        }
+
+        .premium-title {
+            color: #ffd700;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+
+        .code-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ffd700;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #ffa500;
+            font-size: 1rem;
+            margin-bottom: 20px;
+            text-align: center;
+            letter-spacing: 2px;
+        }
+
+        .premium-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .get-premium-btn {
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #ffd700, #ffcc00);
+            color: #000;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .get-code-btn {
+            padding: 12px;
+            border: 2px solid #ffd700;
+            border-radius: 10px;
+            background: transparent;
+            color: #ffd700;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .close-premium {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #ff4444;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+        }
+
+        /* Social Bar */
+        .social-bar-container {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            background: rgba(26, 26, 26, 0.95);
+            border: 2px solid #ff6d00;
+            border-radius: 15px;
+            padding: 15px;
+            display: none;
+        }
+
+        .social-bar {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            position: relative;
+        }
+
+        .close-social {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: #ff4444;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .social-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 109, 0, 0.2);
+            color: #ffa500;
+            font-size: 1.2rem;
+            border: 1px solid #ff6d00;
+        }
+
+        .ads-container {
+            width: 100%;
+            max-width: 500px;
+            margin-top: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+            background: rgba(26, 26, 26, 0.9);
+            border: 2px solid #ff6d00;
+        }
+
+        .ad-label {
+            text-align: center;
+            padding: 5px;
+            font-size: 0.8rem;
+            background: rgba(255, 109, 0, 0.3);
+            color: #ffa500;
+        }
+
+        .ad-content {
+            padding: 15px;
+            text-align: center;
+            position: relative;
+        }
+
+        .ad-link {
+            color: #ffa500;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .watermark-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 0.9rem;
+            animation: blink 2s infinite;
+            pointer-events: none;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.7; }
+        }
+
+        /* HD+ Video Modal */
+        .hd-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .hd-modal-content {
+            background: rgba(26, 26, 26, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            max-width: 90%;
+            max-height: 90%;
+            border: 3px solid #ff6d00;
+            position: relative;
+        }
+
+        .countdown-timer {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #ff6d00;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            z-index: 1001;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: #ff4444;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            display: none;
+            z-index: 1001;
+        }
+
+        .hd-video-player {
+            width: 100%;
+            max-width: 400px;
+            border-radius: 10px;
+        }
+
+        /* Download Popup */
+        .download-popup {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1002;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .popup-content {
+            background: rgba(26, 26, 26, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            border: 3px solid #ff6d00;
+            max-width: 300px;
+        }
+
+        .popup-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .popup-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .cancel-btn {
+            background: #666;
+            color: white;
+        }
+
+        .confirm-download-btn {
+            background: linear-gradient(135deg, #ff6d00, #8b0000);
+            color: white;
+        }
+
+        /* Guide Modal */
+        .guide-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 2000;
+            overflow-y: auto;
+        }
+
+        .guide-content {
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+        }
+
+        .back-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: #ff6d00;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            font-size: 1.5rem;
+            z-index: 2001;
+            box-shadow: 0 5px 15px rgba(255, 109, 0, 0.3);
+        }
+
+        /* Footer Styles */
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 0.9rem;
+            opacity: 0.8;
+            color: #ffa500;
+            padding: 10px;
+            max-width: 500px;
+        }
+
+        .copyright {
+            font-size: 1rem;
+            animation: colorBlink 2s infinite;
+            margin-bottom: 10px;
+        }
+
+        @keyframes colorBlink {
+            0% { color: #ff6d00; }
+            25% { color: #ff4444; }
+            50% { color: #ffcc00; }
+            75% { color: #4dff4d; }
+            100% { color: #4d94ff; }
+        }
+
+        .copyright-text {
+            font-size: 1.2rem;
+            font-weight: bold;
+            animation: blink 1.5s infinite;
+        }
+
+        .info-section {
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(255, 109, 0, 0.1);
+            border-radius: 10px;
+            border: 1px solid #ff6d00;
+        }
+
+        .info-title {
+            color: #ffd700;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .info-text {
+            font-size: 0.85rem;
+            line-height: 1.4;
+            color: #ffa500;
+        }
+
+        .info-features {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .feature-badge {
+            background: rgba(255, 109, 0, 0.2);
+            color: #ffa500;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            border: 1px solid #ff6d00;
+        }
+
+        /* Popunder Ads */
+        .popunder-ad {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 4000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .popunder-content {
+            background: rgba(26, 26, 26, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            max-width: 90%;
+            max-height: 90%;
+            border: 3px solid #ff6d00;
+            text-align: center;
+        }
+
+        .close-popunder {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #ff4444;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        
+        /* Hide all ads for premium users */
+        .premium-mode .ads-container,
+        .premium-mode .social-bar-container,
+        .premium-mode .popunder-ad {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-bats" id="batsContainer"></div>
+    
+    <div class="logo">
+        <h1>🎃 Spooky Downloader 👻</h1>
+        <p>Real TikTok Video Downloader</p>
+        <div class="premium-badge" id="premiumBadge">✨ 2 DAYS PRO ✨</div>
+    </div>
+    
+    <div class="container">
+        <div class="input-group">
+            <input type="text" id="videoUrl" placeholder="Paste TikTok video link here...">
+            <button class="paste-btn" id="pasteBtn">
+                <i class="fas fa-paste"></i> PASTE LINK
+            </button>
+        </div>
+        
+        <div class="error-message" id="errorMessage">
+            Please enter a valid TikTok URL!
+        </div>
+
+        <div class="success-message" id="successMessage">
+            ✅ Success! Premium activated for 2 days!
+        </div>
+        
+        <button class="download-btn" id="downloadBtn">
+            <i class="fas fa-download"></i> Download Video
+        </button>
+
+        <button class="help-btn" id="helpBtn">
+            <i class="fas fa-question-circle"></i> How To Download?
+        </button>
+
+        <button class="unlock-premium-btn" id="unlockPremiumBtn">
+            <i class="fas fa-crown"></i> Unlock Premium
+        </button>
+        
+        <div class="status">
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Downloading your video...</p>
+            </div>
+            
+            <div class="result" id="result">
+                <h3>Download Ready! 👻</h3>
+                <div class="video-preview">
+                    <img class="video-thumbnail" id="videoThumbnail" src="" alt="Video Thumbnail">
+                    <div class="play-overlay">
+                        <i class="fas fa-play"></i>
+                    </div>
+                </div>
+                <div class="download-options">
+                    <button class="option-btn" id="downloadNormal">
+                        <i class="fas fa-download"></i> DOWNLOAD
+                    </button>
+                    <button class="option-btn highlight" id="downloadHD">
+                        <i class="fas fa-hd-video"></i> DOWNLOAD HD+
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Premium Modal -->
+    <div class="premium-modal" id="premiumModal">
+        <div class="premium-content">
+            <button class="close-premium" id="closePremium">×</button>
+            <h2 class="premium-title">🎁 Unlock Premium (2 Days)</h2>
+            
+            <input type="text" class="code-input" id="premiumCode" placeholder="Enter Premium Code" maxlength="5">
+            
+            <div class="premium-buttons">
+                <button class="get-premium-btn" id="activatePremium">
+                    <i class="fas fa-bolt"></i> GET 2 DAYS PREMIUM
+                </button>
+                <button class="get-code-btn" id="getCodeBtn" onclick="window.open('https://tda-pro.github.io/Buy-pro/', '_blank')">
+                    <i class="fas fa-external-link-alt"></i>Get Code?
+                </button>
+            </div>
+            
+            <div class="info-section" style="margin-top: 20px;">
+                <div class="info-title">🎯 Premium Features (2 Days):</div>
+                <div class="info-features">
+                    <span class="feature-badge">No Popup Ads</span>
+                    <span class="feature-badge">No Social Bar Ads</span>
+                    <span class="feature-badge">Skip HD+ Timer</span>
+                    <span class="feature-badge">Fast Downloads</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ads Container (Visible for normal users) -->
+    <div class="ads-container" id="adsContainer">
+        <div class="ad-label">Advertisement</div>
+        <div class="ad-content">
+            <div class="watermark-text">Please Wait its Sponsored = its a watermark</div>
+            <a href="https://www.effectivegatecpm.com/a78cspndgv?key=e1ec2a3260030c6a9a032089d7c96020" class="ad-link" target="_blank">
+                Unlock Premium Features!
+            </a>
+        </div>
+    </div>
+
+    <!-- Social Bar (Visible for normal users) -->
+    <div class="social-bar-container" id="socialBar">
+        <div class="social-bar">
+            <button class="close-social" id="closeSocial">×</button>
+            <div class="social-icon">
+                <i class="fab fa-tiktok"></i>
+            </div>
+            <div class="social-icon">
+                <i class="fab fa-facebook"></i>
+            </div>
+            <div class="social-icon">
+                <i class="fab fa-instagram"></i>
+            </div>
+            <div class="social-icon">
+                <i class="fab fa-twitter"></i>
+            </div>
+            <div class="social-icon">
+                <i class="fab fa-whatsapp"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Popunder Ads (Visible for normal users) -->
+    <div class="popunder-ad" id="popunderAd">
+        <div class="popunder-content">
+            <button class="close-popunder" id="closePopunder">×</button>
+            <h3>Advertisement 👻</h3>
+            <p>Support our service by viewing this ad!</p>
+            <div class="ad-content">
+                <a href="https://www.effectivegatecpm.com/a78cspndgv?key=e1ec2a3260030c6a9a032089d7c96020" class="ad-link" target="_blank">
+                    🔥 Click here for amazing deals! 🔥
+                </a>
+            </div>
+            <p style="margin-top: 15px; font-size: 0.8rem; color: #ffa500;">
+                This ad helps keep our service free for everyone!
+            </p>
+        </div>
+    </div>
+
+    <!-- HD+ Video Modal -->
+    <div class="hd-modal" id="hdModal">
+        <div class="hd-modal-content">
+            <div class="countdown-timer" id="countdownTimer">30</div>
+            <button class="close-modal" id="closeModal">×</button>
+            <video class="hd-video-player" controls id="hdVideoPlayer">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+    </div>
+
+    <!-- Download Popup -->
+    <div class="download-popup" id="downloadPopup">
+        <div class="popup-content">
+            <h3>Download Video? 👻</h3>
+            <p>Your video is ready to download!</p>
+            <div class="popup-buttons">
+                <button class="popup-btn cancel-btn" id="cancelDownload">Cancel</button>
+                <button class="popup-btn confirm-download-btn" id="confirmDownload">Download</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Guide Modal -->
+    <div class="guide-modal" id="guideModal">
+        <button class="back-btn" id="backBtn">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        <div class="guide-content" id="guideContent">
+            <!-- Guide content will be loaded here -->
+        </div>
+    </div>
+
+    <div class="footer">
+        <div class="copyright">
+            All Copyrights Reserved By <span class="copyright-text">@𝑺𝒉𝒂𝒊𝒌𝒉 <3</span>
+        </div>
+        
+        <div class="info-section">
+            <div class="info-title">📱 About Our Service</div>
+            <div class="info-text">
+                We provide fast, secure, and reliable TikTok video downloads without watermark. 
+                Our service supports all video qualities and works with all TikTok links.
+            </div>
+            <div class="info-features">
+                <span class="feature-badge">Free Service</span>
+                <span class="feature-badge">No Watermark</span>
+                <span class="feature-badge">Fast Speed</span>
+                <span class="feature-badge">Secure</span>
+                <span class="feature-badge">24/7 Available</span>
+            </div>
+        </div>
+        
+        <div class="info-section" style="margin-top: 10px;">
+            <div class="info-title">⚠️ Important Notice</div>
+            <div class="info-text">
+                This service is for personal use only. Please respect copyright laws and 
+                download only content that you have permission to use. We are not responsible 
+                for any misuse of downloaded content.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const downloadBtn = document.getElementById('downloadBtn');
+            const videoUrl = document.getElementById('videoUrl');
+            const pasteBtn = document.getElementById('pasteBtn');
+            const helpBtn = document.getElementById('helpBtn');
+            const unlockPremiumBtn = document.getElementById('unlockPremiumBtn');
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('result');
+            const errorMessage = document.getElementById('errorMessage');
+            const successMessage = document.getElementById('successMessage');
+            const videoThumbnail = document.getElementById('videoThumbnail');
+            const downloadNormal = document.getElementById('downloadNormal');
+            const downloadHD = document.getElementById('downloadHD');
+            const hdModal = document.getElementById('hdModal');
+            const hdVideoPlayer = document.getElementById('hdVideoPlayer');
+            const countdownTimer = document.getElementById('countdownTimer');
+            const closeModal = document.getElementById('closeModal');
+            const downloadPopup = document.getElementById('downloadPopup');
+            const cancelDownload = document.getElementById('cancelDownload');
+            const confirmDownload = document.getElementById('confirmDownload');
+            const batsContainer = document.getElementById('batsContainer');
+            const socialBar = document.getElementById('socialBar');
+            const closeSocial = document.getElementById('closeSocial');
+            const guideModal = document.getElementById('guideModal');
+            const backBtn = document.getElementById('backBtn');
+            const guideContent = document.getElementById('guideContent');
+            const premiumModal = document.getElementById('premiumModal');
+            const closePremium = document.getElementById('closePremium');
+            const premiumCode = document.getElementById('premiumCode');
+            const activatePremium = document.getElementById('activatePremium');
+            const getCodeBtn = document.getElementById('getCodeBtn');
+            const premiumBadge = document.getElementById('premiumBadge');
+            const adsContainer = document.getElementById('adsContainer');
+            const popunderAd = document.getElementById('popunderAd');
+            const closePopunder = document.getElementById('closePopunder');
+
+            // Premium state
+            let isPremiumActive = false;
+            let premiumExpiry = localStorage.getItem('premiumExpiry');
+            let currentVideoUrl = '';
+            let countdownInterval;
+            let socialBarTimer;
+            let videoWatched = false;
+            let popunderShown = false;
+
+            // Check premium status on load
+            function checkPremiumStatus() {
+                if (premiumExpiry) {
+                    const expiryDate = new Date(premiumExpiry);
+                    const now = new Date();
+                    if (now < expiryDate) {
+                        isPremiumActive = true;
+                        activatePremiumFeatures();
+                        return true;
+                    } else {
+                        localStorage.removeItem('premiumExpiry');
+                        showExpiryMessage();
+                        isPremiumActive = false;
+                        return false;
+                    }
+                }
+                isPremiumActive = false;
+                return false;
+            }
+
+            // Initial check
+            checkPremiumStatus();
+
+            function showExpiryMessage() {
+                const expiryMsg = document.createElement('div');
+                expiryMsg.className = 'error-message';
+                expiryMsg.id = 'expiryMessage';
+                expiryMsg.textContent = '⚠️ Your Premium subscription has expired!';
+                expiryMsg.style.display = 'block';
+                document.querySelector('.container').insertBefore(expiryMsg, document.querySelector('.input-group').nextSibling);
+                
+                setTimeout(() => {
+                    expiryMsg.style.display = 'none';
+                }, 5000);
+            }
+
+            // Create floating bats
+            function createBats() {
+                const batEmojis = ['🦇', '💀', '👻', '🎃'];
+                for (let i = 0; i < 12; i++) {
+                    const bat = document.createElement('div');
+                    bat.className = 'bat';
+                    bat.textContent = batEmojis[Math.floor(Math.random() * batEmojis.length)];
+                    bat.style.left = `${Math.random() * 100}%`;
+                    bat.style.top = `${Math.random() * 100}%`;
+                    bat.style.animationDelay = `${Math.random() * 15}s`;
+                    bat.style.fontSize = `${Math.random() * 20 + 16}px`;
+                    batsContainer.appendChild(bat);
+                }
+            }
+            
+            createBats();
+
+            // Paste button functionality
+            pasteBtn.addEventListener('click', async function() {
+                try {
+                    const text = await navigator.clipboard.readText();
+                    videoUrl.value = text;
+                } catch (err) {
+                    console.error('Failed to read clipboard contents: ', err);
+                }
+            });
+
+            // Unlock Premium button
+            unlockPremiumBtn.addEventListener('click', function() {
+                premiumModal.style.display = 'flex';
+            });
+
+            closePremium.addEventListener('click', function() {
+                premiumModal.style.display = 'none';
+            });
+
+            closePopunder.addEventListener('click', function() {
+                popunderAd.style.display = 'none';
+            });
+
+            // Activate Premium
+            activatePremium.addEventListener('click', function() {
+                const code = premiumCode.value.trim().toUpperCase();
+                
+                if (code === '2DAYP') {
+                    // Set premium for 2 days
+                    const expiryDate = new Date();
+                    expiryDate.setDate(expiryDate.getDate() + 2);
+                    localStorage.setItem('premiumExpiry', expiryDate.toISOString());
+                    
+                    isPremiumActive = true;
+                    activatePremiumFeatures();
+                    successMessage.style.display = 'block';
+                    successMessage.innerHTML = '✅ Success! You Got 2 Days Pro!';
+                    premiumModal.style.display = 'none';
+                    
+                    // Show success for 3 seconds
+                    setTimeout(() => {
+                        successMessage.style.display = 'none';
+                    }, 3000);
+                } else {
+                    alert('❌ Invalid code! Please enter "2DAYP" for 2 days premium.');
+                }
+            });
+
+            function activatePremiumFeatures() {
+                isPremiumActive = true;
+                premiumBadge.style.display = 'block';
+                
+                // HIDE ALL ADS for premium users
+                adsContainer.style.display = 'none';
+                socialBar.style.display = 'none';
+                popunderAd.style.display = 'none';
+                
+                // Clear any social bar timer
+                if (socialBarTimer) {
+                    clearTimeout(socialBarTimer);
+                }
+                
+                // Hide unlock premium button
+                unlockPremiumBtn.style.display = 'none';
+                
+                // Change HD+ button to premium style
+                downloadHD.classList.remove('highlight');
+                downloadHD.classList.add('premium');
+                downloadHD.innerHTML = '<i class="fas fa-crown"></i> DOWNLOAD HD+ (PRO)';
+                
+                // Add premium class to body
+                document.body.classList.add('premium-mode');
+                
+                console.log('Premium activated - All ads removed!');
+            }
+
+            // Check if ads should be shown
+            function shouldShowAds() {
+                return !isPremiumActive;
+            }
+
+            // Help button functionality
+            helpBtn.addEventListener('click', function() {
+                showGuide();
+            });
+
+            // Back button functionality
+            backBtn.addEventListener('click', function() {
+                guideModal.style.display = 'none';
+            });
+
+            function showGuide() {
+                guideModal.style.display = 'block';
+                guideContent.innerHTML = `
+                    <iframe 
+                        src="data:text/html;base64,${btoa(unescape(encodeURIComponent(`
+                            <!DOCTYPE html>
+                            <html lang="en">
+                            <head>
+                                <meta charset="UTF-8">
+                                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                                <title>Video Download Guide</title>
+                                <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+                                <link href="https://fonts.googleapis.com/css2?family=Hind:wght@400;500;600&display=swap" rel="stylesheet">
+                                <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;600&display=swap" rel="stylesheet">
+                                <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600&display=swap" rel="stylesheet">
+                                <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+                                <style>
+                                    * {
+                                        margin: 0;
+                                        padding: 0;
+                                        box-sizing: border-box;
+                                    }
+
+                                    body {
+                                        font-family: 'Poppins', sans-serif;
+                                        background: linear-gradient(135deg, #1a2a3a 0%, #0d1b2a 100%);
+                                        color: #fff;
+                                        min-height: 100vh;
+                                        padding: 20px;
+                                        display: flex;
+                                        flex-direction: column;
+                                        align-items: center;
+                                        justify-content: center;
+                                        overflow-x: hidden;
+                                        position: relative;
+                                    }
+
+                                    .snow {
+                                        position: absolute;
+                                        top: 0;
+                                        left: 0;
+                                        width: 100%;
+                                        height: 100%;
+                                        pointer-events: none;
+                                        z-index: 1;
+                                    }
+
+                                    .snowflake {
+                                        position: absolute;
+                                        top: -10px;
+                                        color: #fff;
+                                        font-size: 1.5em;
+                                        opacity: 0.8;
+                                        animation: fall linear forwards;
+                                    }
+
+                                    @keyframes fall {
+                                        to {
+                                            transform: translateY(105vh) rotate(360deg);
+                                        }
+                                    }
+
+                                    .container {
+                                        max-width: 1000px;
+                                        width: 100%;
+                                        background: rgba(255, 255, 255, 0.1);
+                                        backdrop-filter: blur(10px);
+                                        border-radius: 20px;
+                                        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+                                        overflow: hidden;
+                                        padding: 30px;
+                                        position: relative;
+                                        z-index: 2;
+                                        border: 1px solid rgba(255, 255, 255, 0.2);
+                                    }
+
+                                    .header {
+                                        text-align: center;
+                                        margin-bottom: 30px;
+                                        position: relative;
+                                    }
+
+                                    .christmas-title {
+                                        font-size: 42px;
+                                        font-weight: 700;
+                                        background: linear-gradient(45deg, #ff4d4d, #ffcc00, #4dff4d, #4d94ff);
+                                        background-size: 400% 400%;
+                                        -webkit-background-clip: text;
+                                        background-clip: text;
+                                        color: transparent;
+                                        animation: gradientShift 5s ease infinite;
+                                        margin-bottom: 10px;
+                                        text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+                                    }
+
+                                    @keyframes gradientShift {
+                                        0% { background-position: 0% 50%; }
+                                        50% { background-position: 100% 50%; }
+                                        100% { background-position: 0% 50%; }
+                                    }
+
+                                    .subtitle {
+                                        font-size: 18px;
+                                        color: #ffcc00;
+                                        margin-bottom: 20px;
+                                    }
+
+                                    .decoration {
+                                        display: flex;
+                                        justify-content: center;
+                                        gap: 15px;
+                                        margin-bottom: 20px;
+                                    }
+
+                                    .ornament {
+                                        width: 20px;
+                                        height: 20px;
+                                        border-radius: 50%;
+                                        background: #ff4d4d;
+                                        box-shadow: 0 0 10px #ff4d4d;
+                                        animation: glow 2s infinite alternate;
+                                    }
+
+                                    .ornament:nth-child(2) {
+                                        background: #4dff4d;
+                                        box-shadow: 0 0 10px #4dff4d;
+                                        animation-delay: 0.5s;
+                                    }
+
+                                    .ornament:nth-child(3) {
+                                        background: #4d94ff;
+                                        box-shadow: 0 0 10px #4d94ff;
+                                        animation-delay: 1s;
+                                    }
+
+                                    .ornament:nth-child(4) {
+                                        background: #ffcc00;
+                                        box-shadow: 0 0 10px #ffcc00;
+                                        animation-delay: 1.5s;
+                                    }
+
+                                    @keyframes glow {
+                                        from { transform: scale(1); }
+                                        to { transform: scale(1.2); }
+                                    }
+
+                                    .language-selector {
+                                        text-align: center;
+                                        margin-bottom: 30px;
+                                        animation: fadeIn 1s ease;
+                                    }
+
+                                    .language-selector h2 {
+                                        margin-bottom: 20px;
+                                        color: #ffcc00;
+                                        font-weight: 600;
+                                        font-size: 24px;
+                                    }
+
+                                    .language-buttons {
+                                        display: flex;
+                                        justify-content: center;
+                                        flex-wrap: wrap;
+                                        gap: 15px;
+                                    }
+
+                                    .lang-btn {
+                                        padding: 12px 25px;
+                                        background: linear-gradient(135deg, #ff4d4d 0%, #ff3333 100%);
+                                        color: white;
+                                        border: none;
+                                        border-radius: 50px;
+                                        font-size: 16px;
+                                        font-weight: 500;
+                                        cursor: pointer;
+                                        transition: all 0.3s ease;
+                                        box-shadow: 0 5px 15px rgba(255, 0, 0, 0.3);
+                                        position: relative;
+                                        overflow: hidden;
+                                    }
+
+                                    .lang-btn:hover {
+                                        transform: translateY(-5px);
+                                        box-shadow: 0 10px 20px rgba(255, 0, 0, 0.4);
+                                    }
+
+                                    .lang-btn::after {
+                                        content: '';
+                                        position: absolute;
+                                        top: 0;
+                                        left: 0;
+                                        width: 100%;
+                                        height: 100%;
+                                        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+                                        transform: translateX(-100%);
+                                    }
+
+                                    .lang-btn:hover::after {
+                                        animation: shimmer 0.8s;
+                                    }
+
+                                    @keyframes shimmer {
+                                        100% { transform: translateX(100%); }
+                                    }
+
+                                    .instructions {
+                                        display: none;
+                                        animation: slideUp 0.8s ease;
+                                    }
+
+                                    .step {
+                                        margin-bottom: 40px;
+                                        padding: 25px;
+                                        background: rgba(255, 255, 255, 0.1);
+                                        border-radius: 15px;
+                                        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+                                        position: relative;
+                                        overflow: hidden;
+                                        transition: all 0.3s ease;
+                                        border-left: 5px solid #ff4d4d;
+                                    }
+
+                                    .step:hover {
+                                        transform: translateY(-5px);
+                                        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+                                        background: rgba(255, 255, 255, 0.15);
+                                    }
+
+                                    .step-number {
+                                        position: absolute;
+                                        top: 0;
+                                        left: 0;
+                                        background: linear-gradient(135deg, #ff4d4d 0%, #ff3333 100%);
+                                        color: white;
+                                        width: 40px;
+                                        height: 40px;
+                                        display: flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                        border-radius: 0 0 15px 0;
+                                        font-weight: 600;
+                                        font-size: 18px;
+                                        box-shadow: 0 3px 10px rgba(255, 0, 0, 0.3);
+                                    }
+
+                                    .step-content {
+                                        margin-left: 50px;
+                                    }
+
+                                    .step-text {
+                                        font-size: 18px;
+                                        margin-bottom: 15px;
+                                        line-height: 1.6;
+                                        color: #fff;
+                                    }
+
+                                    .step-image {
+                                        width: 100%;
+                                        max-width: 600px;
+                                        border-radius: 10px;
+                                        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+                                        transition: all 0.5s ease;
+                                        border: 2px solid #ffcc00;
+                                    }
+
+                                    .step-image:hover {
+                                        transform: scale(1.02);
+                                        box-shadow: 0 8px 20px rgba(255, 204, 0, 0.4);
+                                    }
+
+                                    .bengali {
+                                        font-family: 'Noto Sans Bengali', sans-serif;
+                                    }
+
+                                    .hindi {
+                                        font-family: 'Hind', sans-serif;
+                                    }
+
+                                    .chinese {
+                                        font-family: 'Noto Sans SC', sans-serif;
+                                    }
+
+                                    @keyframes fadeIn {
+                                        from { opacity: 0; }
+                                        to { opacity: 1; }
+                                    }
+
+                                    @keyframes slideUp {
+                                        from { 
+                                            opacity: 0;
+                                            transform: translateY(30px);
+                                        }
+                                        to { 
+                                            opacity: 1;
+                                            transform: translateY(0);
+                                        }
+                                    }
+
+                                    .footer {
+                                        text-align: center;
+                                        margin-top: 30px;
+                                        color: #ffcc00;
+                                        font-size: 14px;
+                                        z-index: 2;
+                                        position: relative;
+                                    }
+
+                                    .santa-hat {
+                                        position: absolute;
+                                        top: -40px;
+                                        right: 30px;
+                                        font-size: 60px;
+                                        transform: rotate(30deg);
+                                        animation: hatWobble 3s infinite alternate;
+                                        z-index: 3;
+                                    }
+
+                                    @keyframes hatWobble {
+                                        from { transform: rotate(25deg); }
+                                        to { transform: rotate(35deg); }
+                                    }
+
+                                    .tree {
+                                        position: absolute;
+                                        bottom: 20px;
+                                        left: 20px;
+                                        font-size: 50px;
+                                        color: #4dff4d;
+                                        z-index: 2;
+                                        animation: treeGlow 2s infinite alternate;
+                                    }
+
+                                    @keyframes treeGlow {
+                                        from { text-shadow: 0 0 5px #4dff4d; }
+                                        to { text-shadow: 0 0 20px #4dff4d, 0 0 30px #4dff4d; }
+                                    }
+
+                                    .gift {
+                                        position: absolute;
+                                        bottom: 20px;
+                                        right: 20px;
+                                        font-size: 40px;
+                                        color: #ff4d4d;
+                                        z-index: 2;
+                                        animation: giftBounce 2s infinite alternate;
+                                    }
+
+                                    @keyframes giftBounce {
+                                        from { transform: translateY(0); }
+                                        to { transform: translateY(-10px); }
+                                    }
+                                </style>
+                            </head>
+                            <body>
+                                <div class="snow" id="snow"></div>
+                                
+                                <div class="container">
+                                    <div class="header">
+                                        <h1 class="christmas-title">How To Download Guide</h1>
+                                        <p class="subtitle">Learn how to download videos easily!</p>
+                                        <div class="decoration">
+                                            <div class="ornament"></div>
+                                            <div class="ornament"></div>
+                                            <div class="ornament"></div>
+                                            <div class="ornament"></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="santa-hat">🎅</div>
+                                    
+                                    <div class="language-selector" id="languageSelector">
+                                        <h2>Choose Your Language</h2>
+                                        <div class="language-buttons">
+                                            <button class="lang-btn" data-lang="en"><i class="fas fa-tree"></i> English</button>
+                                            <button class="lang-btn" data-lang="bn"><i class="fas fa-tree"></i> বাংলা</button>
+                                            <button class="lang-btn" data-lang="hi"><i class="fas fa-tree"></i> हिन्दी</button>
+                                            <button class="lang-btn" data-lang="ur"><i class="fas fa-tree"></i> اردو</button>
+                                            <button class="lang-btn" data-lang="zh"><i class="fas fa-tree"></i> 中文</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="instructions" id="instructions"></div>
+                                    
+                                    <div class="tree">🎄</div>
+                                    <div class="gift">🎁</div>
+                                </div>
+                                
+                                <div class="footer">
+                                    <p>All Copyrights Reserved By <span style="color:#ffcc00;animation:blink 1.5s infinite">@𝑺𝒉𝒂𝒊𝒌𝒉 <3</span></p>
+                                </div>
+
+                                <script>
+                                    // Create snowflakes
+                                    function createSnow() {
+                                        const snowContainer = document.getElementById('snow');
+                                        const snowflakes = ['❄', '⛄', '✨', '🌟'];
+                                        
+                                        for (let i = 0; i < 50; i++) {
+                                            const snowflake = document.createElement('div');
+                                            snowflake.className = 'snowflake';
+                                            snowflake.innerHTML = snowflakes[Math.floor(Math.random() * snowflakes.length)];
+                                            snowflake.style.left = Math.random() * 100 + 'vw';
+                                            snowflake.style.animationDuration = Math.random() * 5 + 5 + 's';
+                                            snowflake.style.opacity = Math.random();
+                                            snowflake.style.fontSize = Math.random() * 20 + 10 + 'px';
+                                            snowContainer.appendChild(snowflake);
+                                        }
+                                    }
+
+                                    // Language data
+                                    const languages = {
+                                        en: {
+                                            title: "How To Download Guide",
+                                            subtitle: "Learn how to download videos easily!",
+                                            steps: [
+                                                "Type The Video Link Or Copy Paste link, Then Click Download Video.",
+                                                "Choose Your Download Option Then Click Your Choice Button.",
+                                                "Wait Few Second Of Countdown timer For HD+ Video only.",
+                                                "After Complete Countdown Timer Then Click (×) in The left Side of the video.",
+                                                "Then Click Download Button.",
+                                                "Then Your Video was play Was front of you then click on 3 dot slider then click Download after click Your Download was Complete Thank For Use us Come Next Time for Better Experience."
+                                            ],
+                                            images: [
+                                                "https://i.postimg.cc/FHxswJFC/IMG-20251130-222842.jpg",
+                                                "https://i.postimg.cc/mkWvb882/IMG-20251130-223123.jpg",
+                                                "https://i.postimg.cc/TP183yxH/IMG-20251130-223228.jpg",
+                                                "https://i.postimg.cc/cLDj2s3D/IMG-20251130-223255.jpg",
+                                                "https://i.postimg.cc/LsYyWj2P/IMG-20251130-223346.jpg",
+                                                "https://i.postimg.cc/y8WnJ0Jm/IMG-20251130-223505.jpg"
+                                            ]
+                                        },
+                                        bn: {
+                                            title: "ডাউনলোড গাইড",
+                                            subtitle: "সহজে ভিডিও ডাউনলোড করতে শিখুন!",
+                                            steps: [
+                                                "ভিডিও লিঙ্ক টাইপ করুন বা লিঙ্কটি কপি পেস্ট করুন, তারপর ডাউনলোড ভিডিও ক্লিক করুন।",
+                                                "আপনার ডাউনলোড অপশন নির্বাচন করুন তারপর আপনার পছন্দের বাটন ক্লিক করুন।",
+                                                "শুধুমাত্র HD+ ভিডিওর জন্য কাউন্টডাউন টাইমারের কয়েক সেকেন্ড অপেক্ষা করুন।",
+                                                "কাউন্টডাউন টাইমার সম্পূর্ণ হওয়ার পরে ভিডিওর বাম দিকে (×) ক্লিক করুন।",
+                                                "তারপর ডাউনলোড বাটন ক্লিক করুন।",
+                                                "তারপর আপনার ভিডিওটি আপনার সামনে প্লে হবে তারপর 3 ডট স্লাইডারে ক্লিক করুন তারপর ডাউনলোড ক্লিক করুন, ক্লিক করার পরে আপনার ডাউনলোড সম্পূর্ণ হবে। আমাদের ব্যবহার করার জন্য ধন্যবাদ, আরও ভাল অভিজ্ঞতার জন্য পরবর্তী সময়ে আসুন।"
+                                            ],
+                                            images: [
+                                                "https://i.postimg.cc/FHxswJFC/IMG-20251130-222842.jpg",
+                                                "https://i.postimg.cc/mkWvb882/IMG-20251130-223123.jpg",
+                                                "https://i.postimg.cc/TP183yxH/IMG-20251130-223228.jpg",
+                                                "https://i.postimg.cc/cLDj2s3D/IMG-20251130-223255.jpg",
+                                                "https://i.postimg.cc/LsYyWj2P/IMG-20251130-223346.jpg",
+                                                "https://i.postimg.cc/y8WnJ0Jm/IMG-20251130-223505.jpg"
+                                            ]
+                                        },
+                                        hi: {
+                                            title: "डाउनलोड गाइड",
+                                            subtitle: "आसानी से वीडियो डाउनलोड करना सीखें!",
+                                            steps: [
+                                                "वीडियो लिंक टाइप करें या लिंक को कॉपी पेस्ट करें, फिर डाउनलोड वीडियो पर क्लिक करें।",
+                                                "अपना डाउनलोड विकल्प चुनें फिर अपनी पसंद के बटन पर क्लिक करें।",
+                                                "केवल HD+ वीडियो के लिए काउंटडाउन टाइमर के कुछ सेकंड प्रतीक्षा करें।",
+                                                "काउंटडाउन टाइमर पूरा होने के बाद वीडियो के बाईं ओर (×) पर क्लिक करें।",
+                                                "फिर डाउनलोड बटन पर क्लिक करें।",
+                                                "फिर आपका वीडियो आपके सामने प्ले होगा फिर 3 डॉट स्लाइडर पर क्लिक करें फिर डाउनलोड पर क्लिक करें, क्लिक करने के बाद आपका डाउनलोड पूरा हो जाएगा। हमें उपयोग करने के लिए धन्यवाद, बेहतर अनुभव के लिए अगली बार आएं।"
+                                            ],
+                                            images: [
+                                                "https://i.postimg.cc/FHxswJFC/IMG-20251130-222842.jpg",
+                                                "https://i.postimg.cc/mkWvb882/IMG-20251130-223123.jpg",
+                                                "https://i.postimg.cc/TP183yxH/IMG-20251130-223228.jpg",
+                                                "https://i.postimg.cc/cLDj2s3D/IMG-20251130-223255.jpg",
+                                                "https://i.postimg.cc/LsYyWj2P/IMG-20251130-223346.jpg",
+                                                "https://i.postimg.cc/y8WnJ0Jm/IMG-20251130-223505.jpg"
+                                            ]
+                                        },
+                                        ur: {
+                                            title: "ڈاؤن لوڈ گائیڈ",
+                                            subtitle: "آسانی سے ویڈیوز ڈاؤن لوڈ کرنا سیکھیں!",
+                                            steps: [
+                                                "ویڈیو لنک ٹائپ کریں یا لنک کو کاپی پیسٹ کریں، پھر ڈاؤن لوڈ ویڈیو پر کلک کریں۔",
+                                                "اپنا ڈاؤن لوڈ آپشن منتخب کریں پھر اپنی پسند کے بٹن پر کلک کریں।",
+                                                "صرف HD+ ویڈیو کے لیے کاؤنٹ ڈاؤن ٹائمر کے چند سیکنڈ انتظار کریں۔",
+                                                "کاؤنٹ ڈاؤن ٹائمر مکمل ہونے کے بعد ویڈیو کے بائیں طرف (×) پر کلک کریں।",
+                                                "پھر ڈاؤن لوڈ بٹن پر کلک کریں۔",
+                                                "پھر آپ کی ویڈیو آپ کے سامنے چلے گی پھر 3 ڈاٹ سلیڈر پر کلک کریں پھر ڈاؤনلوڈ پر کلک کریں، کلک کرنے کے بعد آپ کا ڈاؤن لوڈ مکمل ہو جائے گا۔ ہمیں استعمال کرنے کا شکریہ، بہتر تجربے کے لیے اگلی بار آئیں۔"
+                                            ],
+                                            images: [
+                                                "https://i.postimg.cc/FHxswJFC/IMG-20251130-222842.jpg",
+                                                "https://i.postimg.cc/mkWvb882/IMG-20251130-223123.jpg",
+                                                "https://i.postimg.cc/TP183yxH/IMG-20251130-223228.jpg",
+                                                "https://i.postimg.cc/cLDj2s3D/IMG-20251130-223255.jpg",
+                                                "https://i.postimg.cc/LsYyWj2P/IMG-20251130-223346.jpg",
+                                                "https://i.postimg.cc/y8WnJ0Jm/IMG-20251130-223505.jpg"
+                                            ]
+                                        },
+                                        zh: {
+                                            title: "下载指南",
+                                            subtitle: "学习如何轻松下载视频！",
+                                            steps: [
+                                                "输入视频链接或复制粘贴链接，然后单击下载视频。",
+                                                "选择您的下载选项，然后单击您的选择按钮。",
+                                                "仅适用于高清+视频，请等待倒计时几秒钟。",
+                                                "倒计时完成后，单击视频左侧的 (×)。",
+                                                "然后单击下载按钮。",
+                                                "然后您的视频将在您面前播放，然后单击三点滑块，然后单击下载，单击后您的下载将完成。感谢您使用我们，下次再来以获得更好的体验。"
+                                            ],
+                                            images: [
+                                                "https://i.postimg.cc/FHxswJFC/IMG-20251130-222842.jpg",
+                                                "https://i.postimg.cc/mkWvb882/IMG-20251130-223123.jpg",
+                                                "https://i.postimg.cc/TP183yxH/IMG-20251130-223228.jpg",
+                                                "https://i.postimg.cc/cLDj2s3D/IMG-20251130-223255.jpg",
+                                                "https://i.postimg.cc/LsYyWj2P/IMG-20251130-223346.jpg",
+                                                "https://i.postimg.cc/y8WnJ0Jm/IMG-20251130-223505.jpg"
+                                            ]
+                                        }
+                                    };
+
+                                    // DOM elements
+                                    const languageSelector = document.getElementById('languageSelector');
+                                    const instructions = document.getElementById('instructions');
+                                    const title = document.querySelector('.christmas-title');
+                                    const subtitle = document.querySelector('.subtitle');
+                                    const langButtons = document.querySelectorAll('.lang-btn');
+
+                                    // Initialize snow
+                                    createSnow();
+
+                                    // Add event listeners to language buttons
+                                    langButtons.forEach(button => {
+                                        button.addEventListener('click', function() {
+                                            const selectedLang = this.getAttribute('data-lang');
+                                            showInstructions(selectedLang);
+                                        });
+                                    });
+
+                                    // Function to show instructions in selected language
+                                    function showInstructions(lang) {
+                                        const langData = languages[lang];
+                                        
+                                        // Update title and subtitle
+                                        title.textContent = langData.title;
+                                        subtitle.textContent = langData.subtitle;
+                                        
+                                        // Hide language selector and show instructions
+                                        languageSelector.style.display = 'none';
+                                        instructions.style.display = 'block';
+                                        
+                                        // Clear previous instructions
+                                        instructions.innerHTML = '';
+                                        
+                                        // Add language class to body for font styling
+                                        document.body.className = '';
+                                        if (lang === 'bn') document.body.classList.add('bengali');
+                                        if (lang === 'hi') document.body.classList.add('hindi');
+                                        if (lang === 'zh') document.body.classList.add('chinese');
+                                        
+                                        // Create step elements
+                                        langData.steps.forEach((step, index) => {
+                                            const stepElement = document.createElement('div');
+                                            stepElement.className = 'step';
+                                            
+                                            const stepNumber = document.createElement('div');
+                                            stepNumber.className = 'step-number';
+                                            stepNumber.textContent = index + 1;
+                                            
+                                            const stepContent = document.createElement('div');
+                                            stepContent.className = 'step-content';
+                                            
+                                            const stepText = document.createElement('p');
+                                            stepText.className = 'step-text';
+                                            stepText.textContent = step;
+                                            
+                                            const stepImage = document.createElement('img');
+                                            stepImage.className = 'step-image';
+                                            stepImage.src = langData.images[index];
+                                            stepImage.alt = \`Step \${index + 1}\`;
+                                            
+                                            stepContent.appendChild(stepText);
+                                            stepContent.appendChild(stepImage);
+                                            stepElement.appendChild(stepNumber);
+                                            stepElement.appendChild(stepContent);
+                                            
+                                            instructions.appendChild(stepElement);
+                                        });
+                                        
+                                        // Add a back button
+                                        const backButton = document.createElement('button');
+                                        backButton.className = 'lang-btn';
+                                        backButton.innerHTML = \`<i class="fas fa-arrow-left"></i> \${lang === 'en' ? 'Change Language' : 
+                                            lang === 'bn' ? 'ভাষা পরিবর্তন করুন' :
+                                            lang === 'hi' ? 'भाषा बदलें' :
+                                            lang === 'ur' ? 'زبان تبدیل کریں' : '更改语言'}\`;
+                                        backButton.style.marginTop = '20px';
+                                        backButton.style.display = 'block';
+                                        backButton.style.marginLeft = 'auto';
+                                        backButton.style.marginRight = 'auto';
+                                        
+                                        backButton.addEventListener('click', function() {
+                                            instructions.style.display = 'none';
+                                            languageSelector.style.display = 'block';
+                                            document.body.className = '';
+                                        });
+                                        
+                                        instructions.appendChild(backButton);
+                                    }
+                                <\/script>
+                            </body>
+                            </html>
+                        `)))}" 
+                        style="width:100%; height:100vh; border:none;"
+                    >
+                    </iframe>
+                `;
+            }
+
+            function isValidTikTokUrl(url) {
+                return /https?:\/\/(www\.)?(tiktok\.com|vt\.tiktok\.com)\/.+/.test(url);
+            }
+
+            // Working TikTok Download APIs
+            const WORKING_APIS = [
+                {
+                    name: "TikWM",
+                    url: "https://www.tikwm.com/api/",
+                    method: "POST"
+                },
+                {
+                    name: "SnapTik", 
+                    url: "https://snaptik.app/action.php",
+                    method: "POST"
+                }
+            ];
+
+            async function downloadVideo(url) {
+                for (const api of WORKING_APIS) {
+                    try {
+                        console.log(`Trying ${api.name}...`);
+                        
+                        if (api.method === "POST") {
+                            const formData = new FormData();
+                            formData.append('url', url);
+                            
+                            const response = await fetch(api.url, {
+                                method: 'POST',
+                                body: formData
+                            });
+                            const data = await response.json();
+                            
+                            if (data && data.data && data.data.play) {
+                                return {
+                                    videoUrl: data.data.play,
+                                    thumbnail: data.data.cover
+                                };
+                            } else if (data && data.download_url) {
+                                return {
+                                    videoUrl: data.download_url,
+                                    thumbnail: data.thumbnail
+                                };
+                            }
+                        }
+                    } catch (error) {
+                        console.error(`${api.name} failed:`, error);
+                        continue;
+                    }
+                }
+                throw new Error('All APIs failed');
+            }
+
+            downloadBtn.addEventListener('click', async function() {
+                const url = videoUrl.value.trim();
+                
+                if (!url || !isValidTikTokUrl(url)) {
+                    errorMessage.style.display = 'block';
+                    return;
+                }
+                
+                errorMessage.style.display = 'none';
+                loading.style.display = 'flex';
+                result.style.display = 'none';
+                downloadBtn.disabled = true;
+
+                try {
+                    // Use working download API
+                    const videoData = await downloadVideo(url);
+                    currentVideoUrl = videoData.videoUrl;
+                    
+                    loading.style.display = 'none';
+                    result.style.display = 'block';
+                    downloadBtn.disabled = false;
+                    
+                    // Set thumbnail only (no video play)
+                    if (videoData.thumbnail) {
+                        videoThumbnail.src = videoData.thumbnail;
+                    } else {
+                        videoThumbnail.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 600" fill="%23ff6d00"><rect width="400" height="600" fill="%231a1a1a"/><text x="200" y="300" font-family="Arial" font-size="24" fill="%23ff6d00" text-anchor="middle">Video Preview</text></svg>';
+                    }
+                    
+                    // Show social bar after 5-7 seconds (only if not premium)
+                    if (!isPremiumActive) {
+                        showSocialBar();
+                    }
+                    
+                } catch (error) {
+                    console.error('Download error:', error);
+                    loading.style.display = 'none';
+                    errorMessage.textContent = 'Download failed! Please try a different TikTok URL.';
+                    errorMessage.style.display = 'block';
+                    downloadBtn.disabled = false;
+                }
+            });
+
+            function showSocialBar() {
+                const delay = Math.random() * 2000 + 5000; // 5-7 seconds
+                socialBarTimer = setTimeout(() => {
+                    if (!isPremiumActive) {
+                        socialBar.style.display = 'block';
+                    }
+                }, delay);
+            }
+
+            closeSocial.addEventListener('click', function() {
+                socialBar.style.display = 'none';
+                clearTimeout(socialBarTimer);
+            });
+
+            // Normal Download
+            downloadNormal.addEventListener('click', function() {
+                if (!isPremiumActive && !popunderShown) {
+                    showPopunderAd();
+                } else {
+                    startDownload(currentVideoUrl);
+                }
+            });
+
+            function showPopunderAd() {
+                if (!isPremiumActive) {
+                    popunderAd.style.display = 'flex';
+                    popunderShown = true;
+                } else {
+                    startDownload(currentVideoUrl);
+                }
+            }
+
+            // HD+ Download
+            downloadHD.addEventListener('click', function() {
+                if (isPremiumActive) {
+                    // Premium users skip ads and countdown
+                    startDownload(currentVideoUrl);
+                } else {
+                    showHDModal();
+                }
+            });
+
+            function showHDModal() {
+                hdModal.style.display = 'flex';
+                startCountdown();
+                videoWatched = false;
+                
+                // Reset video to start
+                hdVideoPlayer.currentTime = 0;
+                hdVideoPlayer.play();
+            }
+
+            function startCountdown() {
+                let timeLeft = 30;
+                countdownTimer.textContent = timeLeft;
+                closeModal.style.display = 'none';
+                
+                countdownInterval = setInterval(() => {
+                    timeLeft--;
+                    countdownTimer.textContent = timeLeft;
+                    
+                    if (timeLeft <= 0) {
+                        clearInterval(countdownInterval);
+                        countdownTimer.style.display = 'none';
+                        closeModal.style.display = 'block';
+                        videoWatched = true;
+                    }
+                }, 1000);
+            }
+
+            closeModal.addEventListener('click', function() {
+                hdModal.style.display = 'none';
+                clearInterval(countdownInterval);
+                
+                if (videoWatched) {
+                    showDownloadPopup();
+                } else {
+                    alert('👻 Please watch the full video to download!');
+                }
+            });
+
+            function showDownloadPopup() {
+                downloadPopup.style.display = 'flex';
+            }
+
+            cancelDownload.addEventListener('click', function() {
+                downloadPopup.style.display = 'none';
+            });
+
+            confirmDownload.addEventListener('click', function() {
+                downloadPopup.style.display = 'none';
+                startDownload(currentVideoUrl);
+            });
+
+            function startDownload(videoUrl) {
+                const link = document.createElement('a');
+                link.href = videoUrl;
+                link.download = 'tiktok_video.mp4';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                // Show success message
+                alert('Download started! Check your downloads folder.');
+            }
+
+            videoUrl.addEventListener('input', function() {
+                errorMessage.style.display = 'none';
+            });
+        });
+    </script>
+</body>
+</html>
